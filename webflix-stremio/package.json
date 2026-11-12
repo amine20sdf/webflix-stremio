@@ -1,0 +1,9 @@
+{
+  "name": "webflix-stremio-companion",
+  "version": "0.3.0",
+  "description": "Stremio catalogs with Cinemeta, optional TMDB links to Webflix",
+  "private": true,
+  "engines": { "node": ">=20 <27" },
+  "scripts": { "start": "node index.js", "test": "node --test" },
+  "license": "MIT"
+}
