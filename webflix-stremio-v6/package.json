@@ -1,0 +1,14 @@
+{
+  "name": "webflix-stremio-companion",
+  "version": "0.6.0",
+  "description": "Stremio Cinemeta catalogs with experimental direct Webflix Fastflux MP4/HLS streams",
+  "private": true,
+  "engines": {
+    "node": ">=20 <27"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "test": "node --test"
+  },
+  "license": "MIT"
+}
