@@ -1,34 +1,24 @@
-# Webflix — addon Stremio expérimental
+# Webflix Companion v0.4 (expérimental)
 
-**État : serveur compatible Stremio développé, connecteur Webflix NON VALIDÉ.**
+Addon Stremio avec catalogues Cinemeta/TMDB et fournisseur de sources Webflix Fastflux.
 
-Le 12 novembre 2026, les outils publics ont seulement permis de consulter une page HTML affichant « Chargement… » sur https://webflix.bio. Le site semble rendre son catalogue en JavaScript ; ni une API publique ni une URL de flux direct n'ont été vérifiées. Cet addon **ne garantit donc ni catalogue rempli ni lecture**. Il n'invente pas de flux et ne contourne ni authentification, ni DRM, ni protection anti-bot.
+## Déploiement Render
 
-## Installation sur un serveur Node.js
+Remplacer les fichiers du dossier `webflix-stremio` dans le dépôt GitHub. Conserver Root Directory = `webflix-stremio`, Build Command = `npm install`, Start Command = `npm start`. Déployer le dernier commit.
 
-1. Créer un dépôt GitHub contenant `index.js`, `package.json`, `index.test.js` et `README.md`.
-2. Sur un hébergeur Node.js compatible, configurer la commande d'installation `npm install` et celle de démarrage `npm start`. L'hébergeur doit attribuer `PORT` et une URL HTTPS publique.
-3. Visiter `https://VOTRE-HEBERGEMENT/manifest.json` : le navigateur doit afficher du JSON.
-4. Installer l'URL `https://VOTRE-HEBERGEMENT/manifest.json` dans la section Addons de Stremio.
+Installer dans Stremio avec `https://webflix-stremio.onrender.com/manifest.json` après déploiement.
 
-Pour tester localement (facultatif) : `npm install && npm test && npm start`.
+## Sources
 
-## Fonctions
+Le HAR fourni le 12 novembre 2026 montre `/api/fastflux?type=episode&tmdb_id=303044&season=1&episode=1`, retournant `success=true`, `available=true` et un lien MP4. L'addon n'accepte comme sources vidéo que les URL http(s) se terminant en `.mp4` ou `.m3u8`. Les lecteurs intégrés Heiwa et Fluxora ne sont pas convertis automatiquement en vidéo.
 
-- Manifeste Stremio standard ; catégories Films et Séries.
-- Lecture des liens des pages HTML publiques **si** des liens `/film/...` ou `/series/...` existent dans le HTML retourné au serveur.
-- Métadonnées OpenGraph et JSON-LD sur les pages publiques.
-- Streams HTTP directs déclarés dans `<video>`, `<source>`, OpenGraph ou JSON-LD, si présents. Ni iframe ni lien de page ne sont supposés lisibles par Stremio.
+**Limites :** test HAR d'un seul épisode, source susceptible d'expirer, géoblocage/CORS/referer possibles. Le navigateur peut lire une vidéo que Stremio ne peut pas lire. Les catalogues Cinemeta utilisent des identifiants IMDb ; pour la conversion IMDb→TMDB, il est recommandé d'ajouter une clé gratuite `TMDB_API_KEY` dans Render → Environment. Les IDs `tmdb:tv:303044:1:1` sont pris en charge sans clé. Certains serveurs n'acceptent pas la lecture externe. N'utiliser que des contenus que vous êtes autorisé à consulter.
 
-## Limites connues
+## Test des routes
 
-- La page d'accueil de Webflix charge son contenu par JavaScript : les catalogues risquent d'être vides.
-- Le routage réel des fiches n'a pas été déterminé ; les chemins `/film/...` et `/series/...` sont des conventions **hypothétiques**, pas des faits observés.
-- Pas de déchiffrement, de contournement de connexion ou d'extraction de vidéos protégées.
-- Aucun hébergement n'a été déployé depuis cet environnement. Il faut publier sur un serveur HTTPS avant l'installation à distance.
+- `/health` : état serveur
+- `/stream/series/tmdb:tv:303044:1:1.json` : source du premier épisode (si encore disponible)
+- `/stream/movie/tmdb:movie:1368337.json` : tente une source film, peut revenir avec un lien externe
+- `npm test` : tests locaux sans requête réseau
 
-## Pour obtenir un connecteur vraiment opérationnel
-
-Ouvrir Webflix dans un navigateur, aller sur une fiche film et fournir **l'URL exacte de cette fiche** ainsi que, si autorisé, un exemple de réponse réseau du catalogue et du lecteur, en supprimant les cookies, jetons et données privées. Adapter ensuite les chemins et les appels JSON accessibles publiquement.
-
-Références : https://stremio.github.io/stremio-addon-sdk/ , https://github.com/Stremio/stremio-addon-sdk .
+**Important :** ne jamais publier le HAR complet : il peut contenir des cookies, URL signées et des données personnelles.
