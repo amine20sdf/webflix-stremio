@@ -1,24 +1,28 @@
-# Webflix Companion v0.4 (expérimental)
+# Webflix Direct v0.5.0 — correction des redirections
 
-Addon Stremio avec catalogues Cinemeta/TMDB et fournisseur de sources Webflix Fastflux.
+## Problème corrigé
 
-## Déploiement Render
+La v0.4 renvoyait `externalUrl` vers la page Webflix lorsqu’aucun lien vidéo direct n’était disponible. Stremio ouvrait alors le navigateur au lieu de lancer le lecteur. La v0.5 **ne renvoie plus de `externalUrl`**. Les sources ne sont visibles que si l’API Fastflux renvoie une URL HTTPS MP4/M3U8.
 
-Remplacer les fichiers du dossier `webflix-stremio` dans le dépôt GitHub. Conserver Root Directory = `webflix-stremio`, Build Command = `npm install`, Start Command = `npm start`. Déployer le dernier commit.
+## Installation sur ton Render actuel
 
-Installer dans Stremio avec `https://webflix-stremio.onrender.com/manifest.json` après déploiement.
+1. Dans `https://github.com/amine20sdf/webflix-stremio`, dépose **directement à la racine du dépôt** les fichiers `index.js`, `package.json`, `index.test.js` et `README.md` de ce ZIP, en remplaçant les anciens.
+2. Sur Render, règle **Root Directory vide**, si les fichiers sont à la racine du dépôt, puis `npm install`, `npm start`.
+3. Déploie le dernier commit puis ouvre `https://webflix-stremio.onrender.com/health` et vérifie `version: "0.5.0"`.
+4. Dans Stremio, désinstalle l’ancienne extension et réinstalle `https://webflix-stremio.onrender.com/manifest.json`.
 
-## Sources
+## Tester une source identifiée dans le HAR
 
-Le HAR fourni le 12 novembre 2026 montre `/api/fastflux?type=episode&tmdb_id=303044&season=1&episode=1`, retournant `success=true`, `available=true` et un lien MP4. L'addon n'accepte comme sources vidéo que les URL http(s) se terminant en `.mp4` ou `.m3u8`. Les lecteurs intégrés Heiwa et Fluxora ne sont pas convertis automatiquement en vidéo.
+Ouvre `https://webflix-stremio.onrender.com/stream/series/tmdb:tv:303044:1:1.json`.
 
-**Limites :** test HAR d'un seul épisode, source susceptible d'expirer, géoblocage/CORS/referer possibles. Le navigateur peut lire une vidéo que Stremio ne peut pas lire. Les catalogues Cinemeta utilisent des identifiants IMDb ; pour la conversion IMDb→TMDB, il est recommandé d'ajouter une clé gratuite `TMDB_API_KEY` dans Render → Environment. Les IDs `tmdb:tv:303044:1:1` sont pris en charge sans clé. Certains serveurs n'acceptent pas la lecture externe. N'utiliser que des contenus que vous êtes autorisé à consulter.
+- Si la réponse contient `{"streams":[{"url":"https://...mp4"}]}`, l’API renvoie un lien compatible avec le format Stremio. **La lecture effective reste à tester** : le CDN peut refuser les clients externes (403, Referer, CORS, géoblocage, expiration).
+- Si la réponse est `{"streams":[]}`, aucun lien direct n’est disponible pour ce titre à ce moment-là. Aucun renvoi vers Webflix ne se produira.
 
-## Test des routes
+**Attention aux identifiants IMDb** : les titres des catalogues Cinemeta ont souvent un ID `tt...`, tandis que l’API Webflix demande un ID TMDB. Ajoute la variable `TMDB_API_KEY` dans **Render → Environment** (clé gratuite TMDB) pour améliorer cette conversion. Tu peux vérifier la présence de cette variable avec `/health` → `tmdbConfigured`.
 
-- `/health` : état serveur
-- `/stream/series/tmdb:tv:303044:1:1.json` : source du premier épisode (si encore disponible)
-- `/stream/movie/tmdb:movie:1368337.json` : tente une source film, peut revenir avec un lien externe
-- `npm test` : tests locaux sans requête réseau
+## Limitations
 
-**Important :** ne jamais publier le HAR complet : il peut contenir des cookies, URL signées et des données personnelles.
+- La capture HAR ne prouve la présence d’un MP4 que pour un épisode (TMDB 303044 S01E01). Rien ne garantit la présence de sources pour les autres films/séries.
+- La version ne contourne pas les protections des hébergeurs vidéo et ne prétend pas convertir les lecteurs embarqués en flux natifs.
+- Ne partage pas le HAR original : il peut contenir des cookies ou des liens temporaires.
+- La modification corrige la redirection, pas nécessairement la lecture vidéo (qui dépend du serveur externe).
