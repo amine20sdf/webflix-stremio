@@ -1,4 +1,4 @@
-# Webflix Direct v0.6 — Stremio addon expérimental
+# Webflix Direct v0.6.1 — Stremio addon expérimental
 
 Catalogues Cinemeta (8 catégories), correspondance TMDB et flux vidéo **uniquement si une URL MP4/M3U8 est réellement accessible via HTTP**. Aucun contournement de publicités, aucune simulation de session, aucun proxy vidéo.
 
